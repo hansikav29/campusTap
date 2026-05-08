@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusTap</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav>
+    <span class="logo">🍽 CampusTap</span>
+    <div class="nav-links">
+      <a href="index.html" class="active">Dashboard</a>
+      <a href="dining.html">Dining Halls</a>
+      <a href="chat.html">AI Chat</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1>Welcome, <span id="student-name">Loading...</span></h1>
+
+    <div class="cards">
+      <div class="card">
+        <p class="card-label">Meal Swipes Left</p>
+        <p class="card-value" id="swipe-count">--</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Dining Dollars</p>
+        <p class="card-value" id="dining-dollars">--</p>
+      </div>
+    </div>
+
+    <button id="tap-btn" onclick="simulateTap()">
+      📲 Simulate NFC Tap
+    </button>
+
+    <p id="tap-message" class="message"></p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
