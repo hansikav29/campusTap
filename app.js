@@ -1,4 +1,4 @@
-//const BACKEND = 'https://your-railway-url.railway.app' // Partner replaces this
+const BACKEND = 'https://campustap-production.up.railway.app' // Partner replaces this
 
 
 async function loadStudent() {
