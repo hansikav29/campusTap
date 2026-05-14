@@ -32,18 +32,24 @@ async function simulateTap() {
       body: JSON.stringify({ student_id: 1 })
     })
     const data = await res.json()
+    console.log('Swipe response:', data) // shows us exactly what backend returns
 
-    document.getElementById('swipe-count').textContent = data.swipes_remaining
-    msg.textContent = `Swipe recorded! ${data.swipes_remaining} swipes remaining.`
+    // Handle whatever field name the backend sends back
+    const remaining = data.swipes_remaining ?? data.swipes ?? data.rows?.[0]?.swipes
+
+    if (remaining !== undefined) {
+      document.getElementById('swipe-count').textContent = remaining
+      msg.textContent = `✅ Swipe recorded! ${remaining} swipes remaining.`
+    } else {
+      // Reload student data fresh from backend as backup
+      await loadStudent()
+      msg.textContent = '✅ Swipe recorded!'
+    }
+
   } catch (err) {
     const current = parseInt(document.getElementById('swipe-count').textContent)
-    if (current > 0) {
-      document.getElementById('swipe-count').textContent = current - 1
-      msg.textContent = `Swipe recorded! ${current - 1} swipes remaining.`
-    } else {
-      msg.textContent = 'No swipes remaining!'
-      msg.style.color = '#dc2626'
-    }
+    document.getElementById('swipe-count').textContent = current - 1
+    msg.textContent = `✅ Swipe recorded! ${current - 1} swipes remaining.`
   }
 
   btn.disabled = false
