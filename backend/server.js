@@ -71,7 +71,7 @@ app.post('/swipe', async (req, res) => {
     // Decrement swipe count (don't go below 0)
     const result = await pool.query(
       `UPDATE students SET swipes = GREATEST(swipes - 1, 0)
-       WHERE id = $1 RETURNING swipes`,
+       WHERE id = 1 RETURNING swipes`,
       [student_id]
     )
     // Log it to history
