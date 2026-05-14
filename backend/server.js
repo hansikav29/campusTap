@@ -69,7 +69,7 @@ app.post('/swipe', async (req, res) => {
   const { student_id } = req.body
   try {
     const result = await pool.query(
-      'UPDATE students SET swipes = GREATEST(swipes - 1, 0) WHERE id = $1 RETURNING swipes',
+      'UPDATE students SET swipes = GREATEST(swipes - 1, 0) WHERE id = 1 RETURNING swipes',
       [student_id]
     )
     await pool.query(
