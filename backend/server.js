@@ -66,23 +66,20 @@ app.get('/student/:id', async (req, res) => {
 
 // POST /swipe — log a swipe and decrement count
 app.post('/swipe', async (req, res) => {
-  const { student_id } = req.body
-  try {
-    // Decrement swipe count (don't go below 0)
-    const result = await pool.query(
-      `UPDATE students SET swipes = GREATEST(swipes - 1, 0)
-       WHERE id = $1 RETURNING swipes`,
-      [student_id]
-    )
-    // Log it to history
-    await pool.query(
-      'INSERT INTO swipe_history (student_id, swiped_at) VALUES ($1, NOW())',
-      [student_id]
-    )
-    res.json({ swipes_remaining: result.rows[0].swipes })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
+  const { student_id } = req.body
+  try {
+    const result = await pool.query(
+      'UPDATE students SET swipes = GREATEST(swipes - 1, 0) WHERE id = $1 RETURNING swipes',
+      [student_id]
+    )
+    await pool.query(
+      'INSERT INTO swipe_history (student_id, swiped_at) VALUES ($1, NOW())',
+      [student_id]
+    )
+    res.json({ swipes_remaining: result.rows[0].swipes })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // GET /dining-halls — list all dining halls
