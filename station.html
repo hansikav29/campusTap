@@ -1,0 +1,130 @@
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-hover: #334155;
+    --accent: #6c63ff;
+    --text: #f8fafc;
+    --muted: #64748b;
+    --green: #22c55e;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .setup-wrap {
+    max-width: 500px;
+    margin: 6rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .setup-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--surface);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2.2rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .setup-wrap p {
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .hall-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .hall-btn {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hall-btn:hover {
+    background: var(--surface-hover);
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: 0 12px 20px -10px rgba(108, 99, 255, 0.3);
+  }
+
+  .hall-btn-left {
+    flex-grow: 1;
+    text-align: left;
+  }
+
+  .hall-btn-name {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .hall-btn-loc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .dot-open { 
+    background: var(--green); 
+    box-shadow: 0 0 10px var(--green);
+  }
+
+  .hall-btn-arrow {
+    width: 32px;
+    height: 32px;
+    background: rgba(108, 99, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-weight: bold;
+    transition: transform 0.3s;
+  }
+
+  .hall-btn:hover .hall-btn-arrow {
+    transform: translateX(4px);
+    background: var(--accent);
+    color: white;
+  }
+</style>
