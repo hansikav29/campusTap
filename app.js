@@ -17,42 +17,4 @@ async function loadStudent() {
   }
 }
 
-// Called when the NFC tap button is clicked
-async function simulateTap() {
-  const btn = document.getElementById('tap-btn')
-  const msg = document.getElementById('tap-message')
-
-  btn.disabled = true
-  msg.textContent = 'Processing tap...'
-
-  try {
-    const res = await fetch(`${BACKEND}/swipe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ student_id: 1 })
-    })
-    const data = await res.json()
-    console.log('Swipe response:', data) // shows us exactly what backend returns
-
-    // Handle whatever field name the backend sends back
-    const remaining = data.swipes_remaining ?? data.swipes ?? data.rows?.[0]?.swipes
-
-    if (remaining !== undefined) {
-      document.getElementById('swipe-count').textContent = remaining
-      msg.textContent = `✅ Swipe recorded! ${remaining} swipes remaining.`
-    } else {
-      // Reload student data fresh from backend as backup
-      await loadStudent()
-      msg.textContent = '✅ Swipe recorded!'
-    }
-
-  } catch (err) {
-    const current = parseInt(document.getElementById('swipe-count').textContent)
-    document.getElementById('swipe-count').textContent = current - 1
-    msg.textContent = `✅ Swipe recorded! ${current - 1} swipes remaining.`
-  }
-
-  btn.disabled = false
-}
-
 loadStudent()
