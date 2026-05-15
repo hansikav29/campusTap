@@ -1,0 +1,138 @@
+<style>
+  :root {
+    --accent: #6c63ff;
+    --accent-glow: rgba(108, 99, 255, 0.4);
+    --bg: #0f172a;
+    --surface: rgba(255, 255, 255, 0.05);
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --success: #22c55e;
+    --error: #ef4444;
+  }
+
+  body { 
+    overflow: hidden; 
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .tap-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+  }
+
+  .hall-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.5rem;
+  }
+
+  .hall-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 8vw, 2.8rem);
+    font-weight: 800;
+    margin-bottom: 4rem;
+    background: linear-gradient(to bottom, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Enhanced NFC Rings */
+  .big-ring {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 3rem;
+  }
+
+  .ring-visual {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid var(--accent-glow);
+    animation: ripple 3s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  }
+
+  .r1 { width: 260px; height: 260px; animation-delay: 0s; }
+  .r2 { width: 200px; height: 200px; animation-delay: 0.5s; }
+  .r3 { width: 140px; height: 140px; animation-delay: 1s; }
+
+  .ring-core {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: white;
+    box-shadow: 0 0 50px var(--accent-glow);
+    z-index: 10;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  /* States */
+  .processing .ring-core { transform: scale(0.9); opacity: 0.8; }
+  .success .ring-core { background: var(--success); transform: scale(1.1); box-shadow: 0 0 60px rgba(34, 197, 94, 0.5); }
+  .error .ring-core { background: var(--error); transform: scale(1.1); box-shadow: 0 0 60px rgba(239, 68, 68, 0.5); }
+
+  @keyframes ripple {
+    0% { transform: scale(0.9); opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { transform: scale(1.2); opacity: 0; }
+  }
+
+  .tap-instruction {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .status-msg {
+    height: 1.5rem;
+    font-size: 0.95rem;
+    margin-top: 1rem;
+    transition: all 0.3s;
+  }
+
+  .sim-btn {
+    margin-top: 2rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--muted);
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .recent-wrap {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 2rem;
+    background: linear-gradient(to top, var(--bg), transparent);
+  }
+
+  .recent-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 0.5rem;
+    backdrop-filter: blur(5px);
+  }
+</style>
