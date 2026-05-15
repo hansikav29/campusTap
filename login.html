@@ -68,6 +68,27 @@
         errorDiv.innerText = error.message;
       }
     });
+
+    // Inside your login.html <script type="module">
+const loginBtn = document.getElementById('login-btn');
+
+loginBtn.addEventListener('click', async () => {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    console.log("Logged in successfully:", user.uid);
+    
+    // FORCE REDIRECT
+    window.location.replace('index.html'); 
+    
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+});
   </script>
 </body>
 </html>
