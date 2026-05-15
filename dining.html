@@ -37,19 +37,45 @@
     </header>
 
     <div class="cards">
-      <div class="card clickable" onclick="showMenu('North Dining Hall')">
+  <!-- North Dining Hall -->
+  <div class="card clickable" onclick="showMenu('North Dining Hall')">
+    <div class="card-header-flex">
         <p class="card-label">Open • 7am - 9pm</p>
-        <p class="card-value" style="font-size: 1.4rem;">North Dining Hall</p>
-      </div>
-      <div class="card clickable" onclick="showMenu('South Dining Hall')">
-        <p class="card-label">Open • 7am - 9pm</p>
-        <p class="card-value" style="font-size: 1.4rem;">South Dining Hall</p>
-      </div>
-      <div class="card clickable" onclick="showMenu('The Commons')">
-        <p class="card-label">Open • 10am - 11pm</p>
-        <p class="card-value" style="font-size: 1.4rem;">The Commons</p>
-      </div>
+        <span class="status-tag busy">Busy</span>
     </div>
+    <p class="card-value" style="font-size: 1.4rem;">North Dining Hall</p>
+    <div class="occupancy-wrapper">
+        <div class="occupancy-text">85% Capacity</div>
+        <div class="card-progress"><div class="bar" style="width: 85%; background: #ef4444;"></div></div>
+    </div>
+  </div>
+
+  <!-- South Dining Hall -->
+  <div class="card clickable" onclick="showMenu('South Dining Hall')">
+    <div class="card-header-flex">
+        <p class="card-label">Open • 7am - 9pm</p>
+        <span class="status-tag moderate">Moderate</span>
+    </div>
+    <p class="card-value" style="font-size: 1.4rem;">South Dining Hall</p>
+    <div class="occupancy-wrapper">
+        <div class="occupancy-text">45% Capacity</div>
+        <div class="card-progress"><div class="bar" style="width: 45%; background: #f59e0b;"></div></div>
+    </div>
+  </div>
+
+  <!-- The Commons -->
+  <div class="card clickable" onclick="showMenu('The Commons')">
+    <div class="card-header-flex">
+        <p class="card-label">Open • 10am - 11pm</p>
+        <span class="status-tag quiet">Quiet</span>
+    </div>
+    <p class="card-value" style="font-size: 1.4rem;">The Commons</p>
+    <div class="occupancy-wrapper">
+        <div class="occupancy-text">12% Capacity</div>
+        <div class="card-progress"><div class="bar" style="width: 12%; background: #22c55e;"></div></div>
+    </div>
+  </div>
+</div>
 
     <!-- Daily Menu Section -->
     <section id="menu-section" style="display:none; margin-top: 3rem;">
