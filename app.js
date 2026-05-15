@@ -1,3 +1,8 @@
+import { app, analytics } from './firebase-config.js';
+
+// Your existing logic continues here...
+console.log("Firebase is ready:", app.name);
+
 const BACKEND = 'https://campustap-production.up.railway.app' // Partner replaces this
 
 
