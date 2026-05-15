@@ -199,3 +199,65 @@ button.secondary:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* New Card Utility */
+.clickable {
+    cursor: pointer;
+}
+
+/* Chat UI Styles */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    padding: 1.5rem !important;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.message {
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    max-width: 80%;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.message.bot {
+    background: var(--surface);
+    color: var(--text);
+    align-self: flex-start;
+    border: 1px solid var(--border);
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.chat-input-area input {
+    flex-grow: 1;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.chat-input-area input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.chat-input-area button {
+    padding: 0.8rem 1.5rem;
+    box-shadow: none;
+}
