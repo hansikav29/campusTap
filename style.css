@@ -338,3 +338,51 @@ button.secondary:hover {
 .nutrition-table td:last-child {
     text-align: right;
 }
+
+/* Card Header Flex for Status Tags */
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+/* Status Tags */
+.status-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-tag.busy { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.status-tag.moderate { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.status-tag.quiet { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+
+/* Occupancy Bar Styling */
+.occupancy-wrapper {
+    margin-top: 1.5rem;
+}
+
+.occupancy-text {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+/* Ensure the progress bar from previous file is used or add this: */
+.card-progress {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-progress .bar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out;
+}
