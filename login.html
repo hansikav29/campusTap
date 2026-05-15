@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusTap — Login</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .login-box {
+      max-width: 400px;
+      margin: 10vh auto;
+      padding: 2.5rem;
+      background: var(--glass);
+      backdrop-filter: blur(15px);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: white;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .error-msg { color: #ef4444; font-size: 0.85rem; margin-bottom: 1rem; display: none; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="login-box">
+    <p class="hall-label">Welcome to CampusTap</p>
+    <h1 style="margin-bottom: 2rem;">Sign In</h1>
+    
+    <div id="login-error" class="error-msg">Invalid email or password.</div>
+    
+    <input type="email" id="email" placeholder="Campus Email">
+    <input type="password" id="password" placeholder="Password">
+    
+    <button id="login-btn">Log In</button>
+    <p style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--muted);">
+      Use your university credentials to access your swipes.
+    </p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('login-error');
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = 'index.html'; // Redirect to dashboard
+      } catch (error) {
+        errorDiv.style.display = 'block';
+        errorDiv.innerText = error.message;
+      }
+    });
+  </script>
+</body>
+</html>
