@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CampusTap</title>
+  <title>CampusTap — Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div class="bg-grid"></div>
 
   <nav>
     <span class="logo">🍽 CampusTap</span>
@@ -18,18 +20,28 @@
   </nav>
 
   <main>
-    <h1>Welcome, <span id="student-name">Loading...</span></h1>
+    <header class="dashboard-header">
+        <p class="hall-label">Welcome back</p>
+        <h1><span id="student-name">Loading...</span></h1>
+    </header>
 
     <div class="cards">
       <div class="card">
         <p class="card-label">Meal Swipes Left</p>
         <p class="card-value" id="swipe-count">--</p>
+        <div class="card-progress"><div class="bar" style="width: 70%"></div></div>
       </div>
       <div class="card">
         <p class="card-label">Dining Dollars</p>
         <p class="card-value" id="dining-dollars">--</p>
+        <div class="card-trend">+$12.50 this week</div>
       </div>
     </div>
+
+    <section class="quick-actions">
+        <button onclick="location.href='chat.html'">💬 Ask Campus AI</button>
+        <button class="secondary" onclick="location.href='dining.html'">📍 View Dining Halls</button>
+    </section>
   </main>
 
   <script src="app.js"></script>
