@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusTap — Dining Halls</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <nav>
+    <span class="logo">🍽 CampusTap</span>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="dining.html" class="active">Dining Halls</a>
+      <a href="chat.html">AI Chat</a>
+    </div>
+  </nav>
+
+  <main>
+    <header class="dashboard-header">
+        <p class="hall-label">Live Status</p>
+        <h1>Dining Halls</h1>
+    </header>
+
+    <div class="cards">
+      <!-- Hall 1 -->
+      <div class="card clickable" onclick="alert('Opening menu for North Hall...')">
+        <p class="card-label">Open • 7:00 AM - 10:00 PM</p>
+        <p class="card-value" style="font-size: 1.5rem;">North Hall Commons</p>
+        <div class="card-trend">Busy: 85% capacity</div>
+      </div>
+
+      <!-- Hall 2 -->
+      <div class="card clickable" onclick="alert('Opening menu for Southside...')">
+        <p class="card-label">Open • 10:00 AM - 12:00 AM</p>
+        <p class="card-value" style="font-size: 1.5rem;">Southside Grill</p>
+        <div class="card-trend">Quiet: 20% capacity</div>
+      </div>
+    </div>
+
+    <button class="secondary" onclick="location.href='index.html'">← Back to Dashboard</button>
+  </main>
+</body>
+</html>
