@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusTap — AI Chat</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <nav>
+    <span class="logo">🍽 CampusTap</span>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="dining.html">Dining Halls</a>
+      <a href="chat.html" class="active">AI Chat</a>
+    </div>
+  </nav>
+
+  <main>
+    <header class="dashboard-header">
+        <p class="hall-label">Powered by AI</p>
+        <h1>Campus Assistant</h1>
+    </header>
+
+    <div class="chat-container card">
+      <div class="chat-messages" id="chat-box">
+        <div class="message bot">Hello! Ask me anything about menus, swipe balances, or campus events.</div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="user-input" placeholder="What's for lunch at North Hall?">
+        <button id="send-btn">Send</button>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
