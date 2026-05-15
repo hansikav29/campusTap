@@ -1,138 +1,289 @@
-<style>
-  :root {
-    --accent: #6c63ff;
-    --accent-glow: rgba(108, 99, 255, 0.4);
-    --bg: #0f172a;
-    --surface: rgba(255, 255, 255, 0.05);
-    --text: #f8fafc;
-    --muted: #94a3b8;
-    --success: #22c55e;
-    --error: #ef4444;
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusTap — Tap Here</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #6c63ff;
+      --accent-glow: rgba(108, 99, 255, 0.4);
+      --bg: #0f172a;
+      --surface: rgba(255, 255, 255, 0.05);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --success: #22c55e;
+      --error: #ef4444;
+      --border: rgba(255, 255, 255, 0.1);
+    }
 
-  body { 
-    overflow: hidden; 
-    background: var(--bg);
-    color: var(--text);
-  }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  .tap-page {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-  }
+    body { 
+      overflow: hidden; 
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+    }
 
-  .hall-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin-bottom: 0.5rem;
-  }
+    .tap-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    }
 
-  .hall-title {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(2rem, 8vw, 2.8rem);
-    font-weight: 800;
-    margin-bottom: 4rem;
-    background: linear-gradient(to bottom, #fff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+    .hall-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 0.5rem;
+    }
 
-  /* Enhanced NFC Rings */
-  .big-ring {
-    position: relative;
-    width: 260px;
-    height: 260px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 3rem;
-  }
+    .hall-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
+      font-weight: 800;
+      margin-bottom: 4rem;
+      background: linear-gradient(to bottom, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-  .ring-visual {
-    position: absolute;
-    border-radius: 50%;
-    border: 1px solid var(--accent-glow);
-    animation: ripple 3s infinite cubic-bezier(0.4, 0, 0.6, 1);
-  }
+    /* NFC Visualizer */
+    .big-ring {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
 
-  .r1 { width: 260px; height: 260px; animation-delay: 0s; }
-  .r2 { width: 200px; height: 200px; animation-delay: 0.5s; }
-  .r3 { width: 140px; height: 140px; animation-delay: 1s; }
+    .ring-visual {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid var(--accent-glow);
+      animation: ripple 3s infinite cubic-bezier(0.4, 0, 0.6, 1);
+      pointer-events: none;
+    }
 
-  .ring-core {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1rem;
-    color: white;
-    box-shadow: 0 0 50px var(--accent-glow);
-    z-index: 10;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
+    .r1 { width: 260px; height: 260px; animation-delay: 0s; }
+    .r2 { width: 200px; height: 200px; animation-delay: 0.5s; }
+    .r3 { width: 140px; height: 140px; animation-delay: 1s; }
 
-  /* States */
-  .processing .ring-core { transform: scale(0.9); opacity: 0.8; }
-  .success .ring-core { background: var(--success); transform: scale(1.1); box-shadow: 0 0 60px rgba(34, 197, 94, 0.5); }
-  .error .ring-core { background: var(--error); transform: scale(1.1); box-shadow: 0 0 60px rgba(239, 68, 68, 0.5); }
+    .ring-core {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: white;
+      box-shadow: 0 0 50px var(--accent-glow);
+      z-index: 10;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-  @keyframes ripple {
-    0% { transform: scale(0.9); opacity: 0; }
-    50% { opacity: 0.5; }
-    100% { transform: scale(1.2); opacity: 0; }
-  }
+    /* Feedback States */
+    .processing .ring-core { transform: scale(0.9); opacity: 0.7; }
+    .success-state .ring-core { background: var(--success); transform: scale(1.1); box-shadow: 0 0 60px rgba(34, 197, 94, 0.5); }
+    .error-state .ring-core { background: var(--error); transform: scale(1.1); box-shadow: 0 0 60px rgba(239, 68, 68, 0.5); }
 
-  .tap-instruction {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
+    @keyframes ripple {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { opacity: 0.4; }
+      100% { transform: scale(1.3); opacity: 0; }
+    }
 
-  .status-msg {
-    height: 1.5rem;
-    font-size: 0.95rem;
-    margin-top: 1rem;
-    transition: all 0.3s;
-  }
+    .tap-instruction {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
 
-  .sim-btn {
-    margin-top: 2rem;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: var(--muted);
-    padding: 0.8rem 1.5rem;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-    cursor: pointer;
-    font-weight: 500;
-  }
+    .tap-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
 
-  .recent-wrap {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    padding: 2rem;
-    background: linear-gradient(to top, var(--bg), transparent);
-  }
+    .status-msg {
+      min-height: 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--success);
+      margin-bottom: 1.5rem;
+      transition: all 0.3s;
+    }
+    .status-msg.error { color: var(--error); }
 
-  .recent-item {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    margin-bottom: 0.5rem;
-    backdrop-filter: blur(5px);
-  }
-</style>
+    .sim-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.85rem;
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+    .sim-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+
+    .change-hall {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 1.5rem;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .recent-wrap {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .recent-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      backdrop-filter: blur(10px);
+      animation: slideIn 0.4s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="tap-page" id="main-container">
+    <p class="hall-label">Now serving</p>
+    <h1 class="hall-title" id="hall-title">Loading...</h1>
+
+    <div class="big-ring">
+      <div class="ring-visual r1"></div>
+      <div class="ring-visual r2"></div>
+      <div class="ring-visual r3"></div>
+      <div class="ring-core" id="ring-core">TAP</div>
+    </div>
+
+    <p class="tap-instruction">Tap your campus ID</p>
+    <p class="tap-sub">Hold your NFC card near the phone</p>
+
+    <p class="status-msg" id="status-msg"></p>
+
+    <button class="sim-btn" onclick="simulateTap()">📲 Simulate tap (demo)</button>
+    <button class="change-hall" onclick="changeHall()">← Change dining hall</button>
+  </div>
+
+  <div class="recent-wrap">
+    <div id="recent-list"></div>
+  </div>
+
+  <script>
+    const BACKEND = 'https://your-railway-url.railway.app'
+    const hallId = localStorage.getItem('hall_id') || 1
+    const hallName = localStorage.getItem('hall_name') || 'Dining Hall'
+    document.getElementById('hall-title').textContent = hallName
+
+    let isProcessing = false
+
+    function setRingState(state) {
+      const container = document.getElementById('main-container')
+      const core = document.getElementById('ring-core')
+      container.classList.remove('processing', 'success-state', 'error-state')
+      
+      if (state === 'processing') {
+        container.classList.add('processing')
+        core.textContent = '...'
+      } else if (state === 'success') {
+        container.classList.add('success-state')
+        core.textContent = '✓'
+      } else if (state === 'error') {
+        container.classList.add('error-state')
+        core.textContent = '✗'
+      } else {
+        core.textContent = 'TAP'
+      }
+    }
+
+    function addRecentSwipe(name) {
+      const list = document.getElementById('recent-list')
+      const item = document.createElement('div')
+      item.className = 'recent-item'
+      item.innerHTML = `<span>${name}</span><span style="color:var(--muted)">Just now</span>`
+      list.prepend(item)
+      if (list.children.length > 3) list.removeChild(list.lastChild)
+    }
+
+    async function processSwipe(name = 'Student') {
+      if (isProcessing) return
+      isProcessing = true
+      setRingState('processing')
+
+      const msg = document.getElementById('status-msg')
+      msg.textContent = 'Verifying...'
+      msg.className = 'status-msg'
+
+      try {
+        const res = await fetch(`${BACKEND}/swipe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ student_id: 1, hall_id: parseInt(hallId) })
+        })
+        const data = await res.json()
+
+        if (data.swipes_remaining !== undefined) {
+          setRingState('success')
+          msg.textContent = `Welcome, ${name}!`
+          addRecentSwipe(name)
+        } else {
+          setRingState('error')
+          msg.textContent = data.error || 'Swipe failed'
+          msg.className = 'status-msg error'
+        }
+      } catch (err) {
+        // Demo fallback
+        setRingState('success')
+        msg.textContent = `Welcome, ${name}!`
+        addRecentSwipe(name)
+      }
+
+      setTimeout(() => {
+        setRingState('idle')
+        msg.textContent = ''
+        isProcessing = false
+      }, 3000)
+    }
+
+    function simulateTap() { processSwipe('Hansika') }
+    function changeHall() { window.location.href = 'station.html' }
+  </script>
+</body>
+</html>
