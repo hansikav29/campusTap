@@ -261,3 +261,80 @@ button.secondary:hover {
     padding: 0.8rem 1.5rem;
     box-shadow: none;
 }
+
+/* Menu Items Styling */
+.menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-card {
+    background: var(--glass);
+    padding: 1.2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.menu-card:hover {
+    background: var(--surface-hover);
+}
+
+.view-btn {
+    font-size: 0.7rem;
+    padding: 0.5rem 1rem;
+    box-shadow: none;
+}
+
+/* Nutrition Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--muted);
+}
+
+.nutrition-table {
+    width: 100%;
+    margin-top: 1rem;
+    border-collapse: collapse;
+}
+
+.nutrition-table td {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.nutrition-table td:last-child {
+    text-align: right;
+}
