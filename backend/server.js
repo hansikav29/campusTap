@@ -79,7 +79,6 @@ app.get('/student-data', async (req, res) => {
   }
 
   try {
-    // Search with case-insensitive check
     const result = await pool.query(
       'SELECT id, name, email, swipes, dining_dollars FROM students WHERE LOWER(email) = LOWER($1)', 
       [email]
@@ -89,21 +88,22 @@ app.get('/student-data', async (req, res) => {
       return res.status(404).json({ error: 'Student not found in database' })
     }
 
-    // Explicitly package the response object to guarantee the properties align
     const student = result.rows[0];
+    
+    // Explicitly package and return the row data safely
     res.json({
       id: student.id,
       name: student.name,
       email: student.email,
       swipes: student.swipes,
-      dining_dollars: parseFloat(student.dining_dollars).toFixed(2) // Keeps it safe as a uniform currency decimal
+      dining_dollars: student.dining_dollars ? parseFloat(student.dining_dollars).toFixed(2) : "0.00"
     })
     
   } catch (err) {
+    console.error("Route error:", err.message);
     res.status(500).json({ error: err.message })
   }
 })
-
 // GET /student/:id — get student by database id
 app.get('/student/:id', async (req, res) => {
   try {
