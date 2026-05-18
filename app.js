@@ -29,21 +29,27 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadStudentData(email) {
     try {
-        // Corrected backend route execution
+        console.log("Fetching data for email:", email); // Diagnostic 1
+        console.log("Target URL:", `${BACKEND}/student-data?email=${email}`); // Diagnostic 2
+
         const res = await fetch(`${BACKEND}/student-data?email=${email}`);
         
-        if (!res.ok) throw new Error("Student not found");
+        if (!res.ok) {
+            // Read the actual error message sent by your server.js
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(`Server responded with status ${res.status}: ${errorData.error || 'Unknown error'}`);
+        }
         
         const student = await res.json();
+        console.log("Successfully loaded student:", student);
 
-        // Safe DOM adjustments using values safely stringified/parsed by your API
         document.getElementById('student-name').textContent = student.name;
         document.getElementById('swipe-count').textContent = student.swipes;
         document.getElementById('dining-dollars').textContent = `$${student.dining_dollars}`;
         
     } catch (err) {
-        console.error("Backend link failed:", err);
-        // Clean fallback parameters
+        console.error("Backend link failed details:", err.message); // Look at this in your browser console!
+        
         document.getElementById('student-name').textContent = 'User Not Found';
         document.getElementById('swipe-count').textContent = '0';
         document.getElementById('dining-dollars').textContent = '$0.00';
