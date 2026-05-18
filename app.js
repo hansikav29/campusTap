@@ -29,21 +29,21 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadStudentData(email) {
     try {
-        // We now send the email to your backend as a query parameter
+        // Corrected backend route execution
         const res = await fetch(`${BACKEND}/student-data?email=${email}`);
         
         if (!res.ok) throw new Error("Student not found");
         
         const student = await res.json();
 
-        // Update the UI with real data from your table
+        // Safe DOM adjustments using values safely stringified/parsed by your API
         document.getElementById('student-name').textContent = student.name;
         document.getElementById('swipe-count').textContent = student.swipes;
         document.getElementById('dining-dollars').textContent = `$${student.dining_dollars}`;
         
     } catch (err) {
         console.error("Backend link failed:", err);
-        // Fallback for demo if your backend route isn't set up yet
+        // Clean fallback parameters
         document.getElementById('student-name').textContent = 'User Not Found';
         document.getElementById('swipe-count').textContent = '0';
         document.getElementById('dining-dollars').textContent = '$0.00';
