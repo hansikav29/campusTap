@@ -70,7 +70,7 @@ setupDatabase()
 
 // NEW: GET /student-data?email=...
 // This is what your frontend Dashboard calls
-app.get('/student-data', async (req, res) => {
+app.get('/students', async (req, res) => {
   const { email } = req.query
   
   if (!email) {
