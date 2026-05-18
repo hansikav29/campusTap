@@ -70,7 +70,8 @@ setupDatabase()
 
 // NEW: GET /student-data?email=...
 // This is what your frontend Dashboard calls
-app.get('/students', async (req, res) => {
+// CHANGE: Route renamed to match your frontend fetch string exactly
+app.get('/student-data', async (req, res) => {
   const { email } = req.query
   
   if (!email) {
@@ -78,9 +79,9 @@ app.get('/students', async (req, res) => {
   }
 
   try {
-    // We search using LOWER() to prevent case-sensitivity issues
+    // Search with case-insensitive check
     const result = await pool.query(
-      'SELECT * FROM students WHERE LOWER(email) = LOWER($1)', 
+      'SELECT id, name, email, swipes, dining_dollars FROM students WHERE LOWER(email) = LOWER($1)', 
       [email]
     )
 
@@ -88,7 +89,16 @@ app.get('/students', async (req, res) => {
       return res.status(404).json({ error: 'Student not found in database' })
     }
 
-    res.json(result.rows[0])
+    // Explicitly package the response object to guarantee the properties align
+    const student = result.rows[0];
+    res.json({
+      id: student.id,
+      name: student.name,
+      email: student.email,
+      swipes: student.swipes,
+      dining_dollars: parseFloat(student.dining_dollars).toFixed(2) // Keeps it safe as a uniform currency decimal
+    })
+    
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
