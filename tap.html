@@ -182,20 +182,20 @@
     }
   </style>
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-  // Check if user is logged in
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // If NOT logged in, kick them back to login page
-      window.location.href = 'login.html';
-    }
-  });
+  // Check if user is logged in
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // If NOT logged in, kick them back to login page
+      window.location.href = 'login.html';
+    }
+  });
 </script>
 </head>
 <body>
@@ -211,7 +211,7 @@
     </div>
 
     <p class="tap-instruction">Tap your campus ID</p>
-    <p class="tap-sub">Hold your NFC card near the phone</p>
+    <p class="tap-sub" id="tap-sub-text">Hold your NFC card near the phone</p>
 
     <p class="status-msg" id="status-msg"></p>
 
@@ -230,6 +230,81 @@
     document.getElementById('hall-title').textContent = hallName
 
     let isProcessing = false
+
+    // --- NEW: AUTO-START NFC SCANNER ON PAGE LOAD ---
+    document.addEventListener("DOMContentLoaded", () => {
+      startNfcScanner();
+    });
+
+    async function startNfcScanner() {
+      const subText = document.getElementById('tap-sub-text');
+      
+      // Check if browser supports Web NFC
+      if (!('NDEFReader' in window)) {
+        subText.innerHTML = "<span style='color:var(--error)'>NFC scanning unsuported. Use Chrome on Android.</span>";
+        return;
+      }
+
+      try {
+        const ndef = new NDEFReader();
+        await ndef.scan(); // Requests hardware access permissions from browser
+        console.log("NFC Scanner initialized successfully.");
+        
+        ndef.onreading = event => {
+          // Guard clause to prevent double-processing multiple registers during one long tap
+          if (isProcessing) return; 
+
+          const decoder = new TextDecoder();
+          let scannedStudentId = null;
+
+          // Parse the data out of the text records on the card
+          for (const record of event.message.records) {
+            if (record.recordType === "text") {
+              scannedStudentId = decoder.decode(record.data);
+            }
+          }
+
+          if (scannedStudentId) {
+            // Process the dynamic scanned student ID!
+            // If you store the student's name on the card too, you can split it here,
+            // otherwise we fall back to a dynamic label.
+            processSwipe(scannedStudentId, `Student #${scannedStudentId}`);
+          } else {
+            // Handle card read but text format was empty/unrecognized
+            handleScanError("Invalid card format");
+          }
+        };
+
+        ndef.onreadingerror = () => {
+          handleScanError("Hardware reading error");
+        };
+
+      } catch (error) {
+        console.error("NFC initialization failed: ", error);
+        subText.innerHTML = "<span style='color:var(--error)'>Tap screen or grant permission to unlock NFC</span>";
+        
+        // Browsers block hardware access unless there is a user gesture. 
+        // If it fails on load, make the core ring clickable as a fallback mechanism to trigger it.
+        document.getElementById('ring-core').style.cursor = 'pointer';
+        document.getElementById('ring-core').onclick = () => { startNfcScanner(); };
+      }
+    }
+
+    function handleScanError(message) {
+      if (isProcessing) return;
+      isProcessing = true;
+      setRingState('error');
+      const msg = document.getElementById('status-msg');
+      msg.textContent = message;
+      msg.className = 'status-msg error';
+
+      setTimeout(() => {
+        setRingState('idle');
+        msg.textContent = '';
+        isProcessing = false;
+      }, 3000);
+    }
+    // -----------------------------------------------
 
     function setRingState(state) {
       const container = document.getElementById('main-container')
@@ -259,7 +334,8 @@
       if (list.children.length > 3) list.removeChild(list.lastChild)
     }
 
-    async function processSwipe(name = 'Student') {
+    // UPDATED: Now dynamically accepts an incoming custom studentId
+    async function processSwipe(studentId = 1, displayName = 'Student') {
       if (isProcessing) return
       isProcessing = true
       setRingState('processing')
@@ -272,24 +348,27 @@
         const res = await fetch(`${BACKEND}/swipe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ student_id: 1, hall_id: parseInt(hallId) })
+          // CHANGED: sending the dynamic studentId payload instead of hardcoded 1
+          body: JSON.stringify({ student_id: studentId, hall_id: parseInt(hallId) })
         })
         const data = await res.json()
 
         if (data.swipes_remaining !== undefined) {
           setRingState('success')
-          msg.textContent = `Welcome, ${name}!`
-          addRecentSwipe(name)
+          // If your backend returns the real student's name, use it; otherwise use our display argument
+          const finalName = data.student_name || displayName;
+          msg.textContent = `Welcome, ${finalName}!`;
+          addRecentSwipe(finalName)
         } else {
           setRingState('error')
           msg.textContent = data.error || 'Swipe failed'
           msg.className = 'status-msg error'
         }
       } catch (err) {
-        // Demo fallback
+        // Demo fallback if backend down
         setRingState('success')
-        msg.textContent = `Welcome, ${name}!`
-        addRecentSwipe(name)
+        msg.textContent = `Welcome, ${displayName}! (Offline Mode)`
+        addRecentSwipe(displayName)
       }
 
       setTimeout(() => {
@@ -299,7 +378,7 @@
       }, 3000)
     }
 
-    function simulateTap() { processSwipe('Hansika') }
+    function simulateTap() { processSwipe(999, 'Hansika') }
     function changeHall() { window.location.href = 'station.html' }
   </script>
 </body>
