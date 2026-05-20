@@ -1,0 +1,16 @@
+{
+  "short_name": "CampusTap",
+  "name": "CampusTap Access Station",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5815/5815610.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/tap.html",
+  "background_color": "#0f172a",
+  "theme_color": "#6c63ff",
+  "display": "standalone",
+  "orientation": "portrait"
+}
