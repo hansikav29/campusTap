@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CampusTap — Tap Here</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
   <style>
     :root {
       --accent: #6c63ff;
@@ -183,23 +183,29 @@
     }
   </style>
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-  // Check if user is logged in
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // If NOT logged in, kick them back to login page
-      window.location.href = 'login.html';
-    }
-  });
-</script>
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
 </head>
 <body>
+
+  <!-- HARDWARE ANTENNA LINK OVERLAY -->
+  <div id="nfc-gate" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center;">
+    <h2 style="font-family: 'Syne', sans-serif; font-size: 2rem; margin-bottom: 1rem;">Connect Reader Antenna</h2>
+    <p style="color: var(--muted); max-width: 300px; margin-bottom: 2rem; font-size: 0.95rem;">Android requires a manual screen touch signature to link your browser app directly to the NFC sensor hardware.</p>
+    <button id="connect-btn" style="background: var(--accent); color: white; border: none; padding: 1rem 2rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; border-radius: 14px; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 0 30px var(--accent-glow);">⚡ ACTIVATE ANTENNA</button>
+  </div>
+
   <div class="tap-page" id="main-container">
     <p class="hall-label">Now serving</p>
     <h1 class="hall-title" id="hall-title">Loading...</h1>
@@ -212,7 +218,7 @@
     </div>
 
     <p class="tap-instruction">Tap your campus ID</p>
-    <p class="tap-sub" id="tap-sub-text">Initializing NFC system...</p>
+    <p class="tap-sub" id="tap-sub-text">Awaiting Antenna Link...</p>
 
     <p class="status-msg" id="status-msg"></p>
 
@@ -231,53 +237,37 @@
     document.getElementById('hall-title').textContent = hallName
 
     let isProcessing = false
-    let ndefInstance = null; // Track our scanner instance globally
+    let ndefInstance = null;
 
-    // --- AUTO-START NFC SCANNER ON PAGE LOAD ---
-    document.addEventListener("DOMContentLoaded", () => {
-      // Setup the visual ring as a manual starter if background initialization is blocked
-      const coreRing = document.getElementById('ring-core');
-      coreRing.style.cursor = 'pointer';
-      coreRing.onclick = () => { startNfcScanner(true); };
-
-      // Silently try to wake up the radio antenna immediately
-      startNfcScanner(false);
-    });
-
-    async function startNfcScanner(isUserInitiated = false) {
+    // --- HARDWARE LOCK INJECTION MAPPED TO GESTURE LOOP ---
+    document.getElementById('connect-btn').addEventListener('click', async () => {
       const subText = document.getElementById('tap-sub-text');
+      const gate = document.getElementById('nfc-gate');
       
-      // Safety Check: Reject unsupported mobile operating systems/browsers instantly
       if (!('NDEFReader' in window)) {
-        subText.innerHTML = "<span style='color:var(--error)'>❌ NFC unsupported on this browser. Use Chrome on Android.</span>";
+        alert("❌ NFC Web API is unsupported or disabled on this app browser. Use Google Chrome on Android over a secure HTTPS link.");
         return;
       }
 
       try {
-        // Prevent stacking duplicate reader hooks if already running
-        if (ndefInstance) return;
-
         const ndef = new NDEFReader();
-        await ndef.scan(); // Spawns browser hardware check/permission modal
-        ndefInstance = ndef; 
+        // Spawns the required synchronized security token link frame 
+        await ndef.scan(); 
+        ndefInstance = ndef;
 
-        // Scanner successfully powered up and listening
+        // Dismiss gate overlay upon successful system mounting
+        gate.style.display = 'none';
         subText.innerHTML = "<span style='color:var(--success); font-weight:700;'>📡 Scanner Active — Ready for Card</span>";
-        document.getElementById('ring-core').textContent = 'TAP';
 
         ndef.onreading = event => {
-          if (isProcessing) return; 
+          if (isProcessing) return;
 
-          // Instant UI feedback loop the absolute millisecond the wave field registers data
           subText.innerHTML = "<span style='color:var(--accent); font-weight:700;'>⚡ Tap Registered! Reading data...</span>";
-          
-          // Native Android tactile feedback click
           if (navigator.vibrate) navigator.vibrate(100);
 
           const decoder = new TextDecoder();
           let scannedStudentId = null;
 
-          // Decode raw text payload records stored inside the chip memory
           for (const record of event.message.records) {
             if (record.recordType === "text") {
               scannedStudentId = decoder.decode(record.data);
@@ -285,7 +275,6 @@
           }
 
           if (scannedStudentId) {
-            // Drop dynamic tag string straight into backend validation logic
             processSwipe(scannedStudentId, `Student #${scannedStudentId}`);
           } else {
             handleScanError("Card read, but no Student ID found inside.");
@@ -297,17 +286,10 @@
         };
 
       } catch (error) {
-        console.warn("NFC initialization status: ", error);
-        
-        // Browsers block wireless antennas unless unlocked with an explicit touch signature
-        if (!isUserInitiated) {
-          subText.innerHTML = "<span style='color:var(--muted)'>👉 Tap the 'TAP' ring above to unlock NFC Scanner</span>";
-          document.getElementById('ring-core').textContent = 'START';
-        } else {
-          subText.innerHTML = `<span style='color:var(--error)'>Permission Denied. Please enable NFC in Chrome site settings.</span>`;
-        }
+        console.error("Hardware initialization failure: ", error);
+        alert("Failed to claim NFC hardware control loop. Ensure system NFC is turned on inside your Android drop-down shortcuts panel.");
       }
-    }
+    });
 
     function handleScanError(message) {
       if (isProcessing) return;
@@ -326,7 +308,6 @@
         isProcessing = false;
       }, 3000);
     }
-    // -----------------------------------------------------------
 
     function setRingState(state) {
       const container = document.getElementById('main-container')
@@ -385,13 +366,11 @@
           msg.className = 'status-msg error'
         }
       } catch (err) {
-        // Local simulation fallback if API endpoint cannot be reached
         setRingState('success')
         msg.textContent = `Welcome, ${displayName}! (Offline Mode)`
         addRecentSwipe(displayName)
       }
 
-      // Automatically recycle back into listening loop after state delay clears
       setTimeout(() => {
         setRingState('idle')
         msg.textContent = ''
