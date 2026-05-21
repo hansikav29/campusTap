@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const { Pool } = require('pg')
+const { GoogleGenAI } = require('@google/genai') // Added new official SDK
 
 const app = express()
 app.use(cors())
@@ -11,6 +12,9 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false } // Required for some hosted Postgres instances
 })
+
+// Initialize Gemini SDK (Reads process.env.GEMINI_API_KEY automatically)
+const ai = new GoogleGenAI({});
 
 async function setupDatabase() {
   try {
@@ -68,9 +72,7 @@ setupDatabase()
 
 // --- ROUTES ---
 
-// NEW: GET /student-data?email=...
-// This is what your frontend Dashboard calls
-// CHANGE: Route renamed to match your frontend fetch string exactly
+// GET /student-data?email=...
 app.get('/student-data', async (req, res) => {
   const { email } = req.query
   
@@ -90,7 +92,6 @@ app.get('/student-data', async (req, res) => {
 
     const student = result.rows[0];
     
-    // Explicitly package and return the row data safely
     res.json({
       id: student.id,
       name: student.name,
@@ -104,7 +105,50 @@ app.get('/student-data', async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 })
-// GET /student/:id — get student by database id
+
+// NEW AI CHATBOT ROUTE: POST /chat
+app.post('/chat', async (req, res) => {
+  const { message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: "Message content is required" });
+  }
+
+  try {
+    // Gather database metrics context for the AI system instruction mapping
+    const hallsQuery = await pool.query(`
+      SELECT d.*, COUNT(s.id) AS recent_swipes
+      FROM dining_halls d
+      LEFT JOIN swipe_history s ON s.hall_id = d.id AND s.swiped_at > NOW() - INTERVAL '1 hour'
+      GROUP BY d.id ORDER BY d.id
+    `);
+    
+    const contextMap = hallsQuery.rows.map(h => ({
+      name: h.name,
+      location: h.location,
+      is_open: h.is_open,
+      crowdedness: h.recent_swipes >= 10 ? 'Very busy' : h.recent_swipes >= 5 ? 'Busy' : h.recent_swipes >= 2 ? 'Moderate' : 'Quiet'
+    }));
+
+    // Call the high speed gemini-2.5-flash text model
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: message,
+      config: {
+        systemInstruction: `You are CampusTap AI, an assistant for university students. 
+        Use this live campus database snapshot to accurately answer crowding or availability questions: 
+        ${JSON.stringify(contextMap)}. Keep answers helpful, brief, and highly conversational.`
+      }
+    });
+
+    res.json({ reply: response.text });
+  } catch (err) {
+    console.error("Gemini Route Error:", err.message);
+    res.status(500).json({ error: "The campus assistant service is currently unavailable." });
+  }
+});
+
+// GET /student/:id
 app.get('/student/:id', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM students WHERE id = $1', [req.params.id])
@@ -115,7 +159,7 @@ app.get('/student/:id', async (req, res) => {
   }
 })
 
-// GET /student/nfc/:nfc_id — look up student by NFC tag ID
+// GET /student/nfc/:nfc_id
 app.get('/student/nfc/:nfc_id', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM students WHERE student_nfc_id = $1', [req.params.nfc_id])
@@ -126,7 +170,7 @@ app.get('/student/nfc/:nfc_id', async (req, res) => {
   }
 })
 
-// POST /swipe — log a swipe
+// POST /swipe
 app.post('/swipe', async (req, res) => {
   const { student_id, hall_id } = req.body
   if (!student_id || !hall_id) {
@@ -149,7 +193,7 @@ app.post('/swipe', async (req, res) => {
   }
 })
 
-// GET /dining-halls — list all halls
+// GET /dining-halls
 app.get('/dining-halls', async (req, res) => {
   try {
     const result = await pool.query(`
