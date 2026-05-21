@@ -121,30 +121,44 @@ app.get('/student-data', async (req, res) => {
 })
 
 // NEW AI CHATBOT ROUTE: POST /chat
+// UPDATED & PROTECTED CHAT ROUTE
 app.post('/chat', async (req, res) => {
+  // Always guarantee headers go out even if a crash happens deeper down
+  res.header("Access-Control-Allow-Origin", "https://campus-tap.vercel.app");
+  
   const { message } = req.body;
 
   if (!message) {
     return res.status(400).json({ error: "Message content is required" });
   }
 
-  try {
-    // Gather database metrics context for the AI system instruction mapping
-    const hallsQuery = await pool.query(`
-      SELECT d.*, COUNT(s.id) AS recent_swipes
-      FROM dining_halls d
-      LEFT JOIN swipe_history s ON s.hall_id = d.id AND s.swiped_at > NOW() - INTERVAL '1 hour'
-      GROUP BY d.id ORDER BY d.id
-    `);
-    
-    const contextMap = hallsQuery.rows.map(h => ({
-      name: h.name,
-      location: h.location,
-      is_open: h.is_open,
-      crowdedness: h.recent_swipes >= 10 ? 'Very busy' : h.recent_swipes >= 5 ? 'Busy' : h.recent_swipes >= 2 ? 'Moderate' : 'Quiet'
-    }));
+  // Safety Check: Verify your environment variable key is present
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("CRITICAL CONFIG ERROR: GEMINI_API_KEY environment variable is missing on Railway!");
+    return res.status(200).json({ reply: "⚠️ Chatbot Error: My AI API key configuration is missing on the server backend. Please check Railway variables." });
+  }
 
-    // Call the high speed gemini-2.5-flash text model
+  try {
+    // 1. Gather database metrics safely
+    let contextMap = [];
+    try {
+      const hallsQuery = await pool.query(`
+        SELECT d.*, COUNT(s.id) AS recent_swipes
+        FROM dining_halls d
+        LEFT JOIN swipe_history s ON s.hall_id = d.id AND s.swiped_at > NOW() - INTERVAL '1 hour'
+        GROUP BY d.id ORDER BY d.id
+      `);
+      contextMap = hallsQuery.rows.map(h => ({
+        name: h.name,
+        location: h.location,
+        is_open: h.is_open,
+        crowdedness: h.recent_swipes >= 10 ? 'Very busy' : h.recent_swipes >= 5 ? 'Busy' : h.recent_swipes >= 2 ? 'Moderate' : 'Quiet'
+      }));
+    } catch (dbErr) {
+      console.error("Database context query failed, proceeding without it:", dbErr.message);
+    }
+
+    // 2. Run Gemini Content Generation
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: message,
@@ -155,10 +169,12 @@ app.post('/chat', async (req, res) => {
       }
     });
 
-    res.json({ reply: response.text });
+    return res.json({ reply: response.text });
+
   } catch (err) {
-    console.error("Gemini Route Error:", err.message);
-    res.status(500).json({ error: "The campus assistant service is currently unavailable." });
+    // Catch-all prevents server drops and prints the real diagnostic issue to Railway console logs
+    console.error("PROCESSED GEMINI FAULT:", err);
+    return res.status(200).json({ reply: `⚠️ AI Processing Error: ${err.message}. Check your server logs.` });
   }
 });
 
