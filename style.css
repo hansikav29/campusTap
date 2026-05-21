@@ -237,6 +237,14 @@ button.secondary:hover {
     border: 1px solid var(--border);
 }
 
+/* NEW: Style for User Chat Bubbles */
+.message.user {
+    background: var(--accent);
+    color: white;
+    align-self: flex-end;
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.2);
+}
+
 .chat-input-area {
     display: flex;
     gap: 0.8rem;
@@ -373,7 +381,6 @@ button.secondary:hover {
     font-weight: 500;
 }
 
-/* Ensure the progress bar from previous file is used or add this: */
 .card-progress {
     height: 6px;
     background: rgba(255, 255, 255, 0.05);
