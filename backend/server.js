@@ -1,5 +1,8 @@
+// 1. CRITICAL: Initialize dotenv at the absolute top of the file for local environments
+require('dotenv').config();
+
 const express = require('express')
-const cors = require('cors') // You can leave this import
+const cors = require('cors') 
 const { Pool } = require('pg')
 const { GoogleGenAI } = require('@google/genai')
 
@@ -134,8 +137,8 @@ app.post('/chat', async (req, res) => {
 
   // Safety Check: Verify your environment variable key is present
   if (!process.env.GEMINI_API_KEY) {
-    console.error("CRITICAL CONFIG ERROR: GEMINI_API_KEY environment variable is missing on Railway!");
-    return res.status(200).json({ reply: "⚠️ Chatbot Error: My AI API key configuration is missing on the server backend. Please check Railway variables." });
+    console.error("CRITICAL CONFIG ERROR: GEMINI_API_KEY environment variable is missing!");
+    return res.status(200).json({ reply: "⚠️ Chatbot Error: My AI API key configuration is missing on the server backend. Please check your environment configurations." });
   }
 
   try {
@@ -172,7 +175,7 @@ app.post('/chat', async (req, res) => {
     return res.json({ reply: response.text });
 
   } catch (err) {
-    // Catch-all prevents server drops and prints the real diagnostic issue to Railway console logs
+    // Catch-all prevents server drops and prints the real diagnostic issue to console logs
     console.error("PROCESSED GEMINI FAULT:", err);
     return res.status(200).json({ reply: `⚠️ AI Processing Error: ${err.message}. Check your server logs.` });
   }
@@ -243,5 +246,6 @@ app.get('/dining-halls', async (req, res) => {
   }
 })
 
-const PORT = process.env.PORT || 3000
+// 2. UPDATED: Standardized fallback port to 5000 to match setup expectations
+const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`CampusTap backend running on port ${PORT}`))
