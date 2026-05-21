@@ -1,10 +1,21 @@
 const express = require('express')
 const cors = require('cors')
 const { Pool } = require('pg')
-const { GoogleGenAI } = require('@google/genai') // Added new official SDK
+const { GoogleGenAI } = require('@google/genai')
 
 const app = express()
-app.use(cors())
+
+// 1. Configure CORS to specifically trust your Vercel frontend
+app.use(cors({
+  origin: ['https://campus-tap.vercel.app', 'http://127.0.0.1:5500', 'http://localhost:5500'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}))
+
+// 2. Explicitly handle the browser preflight checks globally
+app.options('*', cors())
+
 app.use(express.json())
 
 // Ensure DATABASE_URL is set in Railway environment variables
