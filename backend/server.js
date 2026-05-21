@@ -1,20 +1,23 @@
 const express = require('express')
-const cors = require('cors')
+const cors = require('cors') // You can leave this import
 const { Pool } = require('pg')
 const { GoogleGenAI } = require('@google/genai')
 
 const app = express()
 
-// 1. Configure CORS to specifically trust your Vercel frontend
-app.use(cors({
-  origin: ['https://campus-tap.vercel.app', 'http://127.0.0.1:5500', 'http://localhost:5500'],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}))
-
-// 2. Explicitly handle the browser preflight checks globally
-app.options('*', cors())
+// FORCE NATIVE CORS HEADERS (Place this before ANY other middleware or routes)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://campus-tap.vercel.app");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  
+  // Instantly intercept preflight OPTIONS method requests before they hit routes
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 app.use(express.json())
 
