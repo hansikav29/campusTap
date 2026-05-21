@@ -7,21 +7,30 @@
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    // Replaced with your exact dynamic config keys from app.js
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBJ_tBuWyDtqPtS4nCG5V8jsiRdnoEiK7Q",
+        authDomain: "campustap-b442c.firebaseapp.com",
+        projectId: "campustap-b442c",
+        storageBucket: "campustap-b442c.firebasestorage.app",
+        messagingSenderId: "1047134881515",
+        appId: "1:1047134881515:web:f574ca3c777130d12020ae",
+        measurementId: "G-Q2H5PYEY0B"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-  // Check if user is logged in
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // If NOT logged in, kick them back to login page
-      window.location.href = 'login.html';
-    }
-  });
-</script>
+    // Check if user is logged in
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
 </head>
 <body>
   <div class="bg-grid"></div>
@@ -43,13 +52,53 @@
 
     <div class="chat-container card">
       <div class="chat-messages" id="chat-box">
-        <div class="message bot">Hello! Ask me anything about menus, swipe balances, or campus events.</div>
+        <div class="message bot">Hello! Ask me anything about menus, swipe balances, or live dining hall crowding status metrics.</div>
       </div>
       <div class="chat-input-area">
-        <input type="text" id="user-input" placeholder="What's for lunch at North Hall?">
-        <button id="send-btn">Send</button>
+        <input type="text" id="user-input" placeholder="What's for lunch at North Hall?" onkeypress="handleKeyPress(event)">
+        <button id="send-btn" onclick="sendMessage()">Send</button>
       </div>
     </div>
   </main>
+
+  <script>
+    const BACKEND = 'https://campustap-production.up.railway.app';
+
+    async function sendMessage() {
+      const inputEl = document.getElementById('user-input');
+      const chatBox = document.getElementById('chat-box');
+      const messageText = inputEl.value.trim();
+
+      if (!messageText) return;
+
+      // Render user message text bubble locally instantly
+      chatBox.innerHTML += `<div class="message user">${messageText}</div>`;
+      inputEl.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch(`${BACKEND}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: messageText })
+        });
+
+        const data = await res.json();
+
+        // Render AI bubble block response 
+        chatBox.innerHTML += `<div class="message bot">${data.reply || data.error}</div>`;
+      } catch (err) {
+        chatBox.innerHTML += `<div class="message bot">Error: Unable to connect to backend server instances.</div>`;
+      }
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    }
+  </script>
 </body>
 </html>
