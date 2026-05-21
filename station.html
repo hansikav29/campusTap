@@ -1,0 +1,215 @@
+<script type="module" src="app.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusTap — Station Setup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-hover: #2d3a4f;
+      --accent: #6c63ff;
+      --text: #f8fafc;
+      --muted: #64748b;
+      --green: #22c55e;
+      --border: rgba(255, 255, 255, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .setup-wrap {
+      max-width: 480px;
+      width: 100%;
+      padding: 2rem;
+    }
+
+    .setup-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--surface);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2.2rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+
+    .desc {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .hall-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .hall-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 100%;
+      text-decoration: none;
+    }
+
+    .hall-btn:hover {
+      background: var(--surface-hover);
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 20px -10px rgba(108, 99, 255, 0.2);
+    }
+
+    .hall-info {
+      flex-grow: 1;
+      text-align: left;
+    }
+
+    .hall-name {
+      display: block;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .hall-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .dot-open { background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .dot-closed { background: var(--muted); }
+
+    .arrow {
+      width: 32px;
+      height: 32px;
+      background: rgba(108, 99, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      transition: all 0.3s;
+    }
+
+    .hall-btn:hover .arrow {
+      background: var(--accent);
+      color: white;
+      transform: translateX(4px);
+    }
+  </style>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // Check if user is logged in
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // If NOT logged in, kick them back to login page
+      window.location.href = 'login.html';
+    }
+  });
+</script>
+</head>
+<body>
+
+  <div class="setup-wrap">
+    <div class="setup-icon">📍</div>
+    <h1>Station Setup</h1>
+    <p class="desc">Select the dining hall for this station to begin accepting student taps.</p>
+    
+    <div class="hall-list" id="hall-list">
+      <div style="text-align: center; color: var(--muted);">Connecting to campus network...</div>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND = 'https://campustap-production.up.railway.app'
+
+    async function loadHalls() {
+      const list = document.getElementById('hall-list')
+      try {
+        const res = await fetch(`${BACKEND}/dining-halls`)
+        const halls = await res.json()
+        renderHalls(halls)
+      } catch (err) {
+        // Fallback for demo
+        renderHalls([
+          { id: 1, name: 'North Dining Hall', location: 'North Campus', is_open: true },
+          { id: 2, name: 'South Dining Hall', location: 'South Campus', is_open: true },
+          { id: 3, name: 'The Commons', location: 'Central Campus', is_open: false }
+        ])
+      }
+    }
+
+    function renderHalls(halls) {
+      const list = document.getElementById('hall-list')
+      list.innerHTML = halls.map(h => `
+        <div class="hall-btn" onclick="selectHall(${h.id}, '${h.name}')">
+          <div class="hall-info">
+            <span class="hall-name">${h.name}</span>
+            <div class="hall-meta">
+              <span class="status-dot ${h.is_open ? 'dot-open' : 'dot-closed'}"></span>
+              ${h.location} • ${h.is_open ? 'Open' : 'Closed'}
+            </div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+      `).join('')
+    }
+
+    function selectHall(id, name) {
+      localStorage.setItem('hall_id', id)
+      localStorage.setItem('hall_name', name)
+      window.location.href = 'tap.html'
+    }
+
+    loadHalls()
+  </script>
+</body>
+</html>

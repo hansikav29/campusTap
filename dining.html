@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusTap — Dining Halls</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // Check if user is logged in
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // If NOT logged in, kick them back to login page
+      window.location.href = 'login.html';
+    }
+  });
+</script>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <!-- Nutrition Modal -->
+  <div id="nutrition-modal" class="modal">
+    <div class="modal-content card">
+      <span class="close-modal" onclick="closeNutrition()">&times;</span>
+      <h2 id="dish-name" class="hall-label">Nutrition Facts</h2>
+      <div id="nutrition-details">
+        <!-- Details injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <span class="logo">🍽 CampusTap</span>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="dining.html" class="active">Dining Halls</a>
+      <a href="chat.html">AI Chat</a>
+    </div>
+  </nav>
+
+  <main>
+    <header class="dashboard-header">
+        <p class="hall-label">Campus Locations</p>
+        <h1>Dining Halls</h1>
+    </header>
+
+    <div class="cards">
+  <!-- North Dining Hall -->
+  <div class="card clickable" onclick="showMenu('North Dining Hall')">
+    <div class="card-header-flex">
+        <p class="card-label">Open • 7am - 9pm</p>
+        <span class="status-tag busy">Busy</span>
+    </div>
+    <p class="card-value" style="font-size: 1.4rem;">North Dining Hall</p>
+    <div class="occupancy-wrapper">
+        <div class="occupancy-text">85% Capacity</div>
+        <div class="card-progress"><div class="bar" style="width: 85%; background: #ef4444;"></div></div>
+    </div>
+  </div>
+
+  <!-- South Dining Hall -->
+  <div class="card clickable" onclick="showMenu('South Dining Hall')">
+    <div class="card-header-flex">
+        <p class="card-label">Open • 7am - 9pm</p>
+        <span class="status-tag moderate">Moderate</span>
+    </div>
+    <p class="card-value" style="font-size: 1.4rem;">South Dining Hall</p>
+    <div class="occupancy-wrapper">
+        <div class="occupancy-text">45% Capacity</div>
+        <div class="card-progress"><div class="bar" style="width: 45%; background: #f59e0b;"></div></div>
+    </div>
+  </div>
+
+  <!-- The Commons -->
+  <div class="card clickable" onclick="showMenu('The Commons')">
+    <div class="card-header-flex">
+        <p class="card-label">Open • 10am - 11pm</p>
+        <span class="status-tag quiet">Quiet</span>
+    </div>
+    <p class="card-value" style="font-size: 1.4rem;">The Commons</p>
+    <div class="occupancy-wrapper">
+        <div class="occupancy-text">12% Capacity</div>
+        <div class="card-progress"><div class="bar" style="width: 12%; background: #22c55e;"></div></div>
+    </div>
+  </div>
+</div>
+
+    <!-- Daily Menu Section -->
+    <section id="menu-section" style="display:none; margin-top: 3rem;">
+        <h2 id="current-hall-name" style="font-family: 'Syne'; margin-bottom: 1.5rem;">Menu</h2>
+        <div class="menu-grid" id="menu-items">
+            <!-- Dishes injected here -->
+        </div>
+    </section>
+  </main>
+
+  <script>
+    const menuData = {
+        'North Dining Hall': [
+            { name: 'Grilled Salmon', cal: 350, protein: '34g', carbs: '0g', fat: '22g' },
+            { name: 'Quinoa Bowl', cal: 420, protein: '12g', carbs: '65g', fat: '8g' }
+        ],
+        'South Dining Hall': [
+            { name: 'Beef Tacos', cal: 510, protein: '28g', carbs: '40g', fat: '25g' },
+            { name: 'Garden Salad', cal: 150, protein: '3g', carbs: '12g', fat: '10g' }
+        ],
+        'The Commons': [
+            { name: 'Margherita Pizza', cal: 280, protein: '12g', carbs: '35g', fat: '10g' },
+            { name: 'Classic Burger', cal: 650, protein: '30g', carbs: '45g', fat: '38g' }
+        ]
+    };
+
+    function showMenu(hall) {
+        const section = document.getElementById('menu-section');
+        const list = document.getElementById('menu-items');
+        document.getElementById('current-hall-name').innerText = hall + " — Today's Specials";
+        
+        section.style.display = 'block';
+        list.innerHTML = '';
+
+        menuData[hall].forEach(dish => {
+            const div = document.createElement('div');
+            div.className = 'menu-card';
+            div.innerHTML = `<span>${dish.name}</span><button class="view-btn">View Nutrition</button>`;
+            div.onclick = () => showNutrition(dish);
+            list.appendChild(div);
+        });
+        section.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showNutrition(dish) {
+        const modal = document.getElementById('nutrition-modal');
+        document.getElementById('dish-name').innerText = dish.name;
+        document.getElementById('nutrition-details').innerHTML = `
+            <table class="nutrition-table">
+                <tr><td>Calories</td><td><b>${dish.cal}</b></td></tr>
+                <tr><td>Protein</td><td>${dish.protein}</td></tr>
+                <tr><td>Carbohydrates</td><td>${dish.carbs}</td></tr>
+                <tr><td>Total Fat</td><td>${dish.fat}</td></tr>
+            </table>
+        `;
+        modal.style.display = 'flex';
+    }
+
+    function closeNutrition() {
+        document.getElementById('nutrition-modal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

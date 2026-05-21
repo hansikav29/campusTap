@@ -1,52 +1,57 @@
-//const BACKEND = 'https://your-railway-url.railway.app' // Partner replaces this
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+const firebaseConfig = {
+    apiKey: "AIzaSyBJ_tBuWyDtqPtS4nCG5V8jsiRdnoEiK7Q",
+    authDomain: "campustap-b442c.firebaseapp.com",
+    projectId: "campustap-b442c",
+    storageBucket: "campustap-b442c.firebasestorage.app",
+    messagingSenderId: "1047134881515",
+    appId: "1:1047134881515:web:f574ca3c777130d12020ae",
+    measurementId: "G-Q2H5PYEY0B"
+};
 
-async function loadStudent() {
-  try {
-    const res = await fetch(`${BACKEND}/student/1`)
-    const student = await res.json()
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-    document.getElementById('student-name').textContent = student.name
-    document.getElementById('swipe-count').textContent = student.swipes
-    document.getElementById('dining-dollars').textContent = `$${student.dining_dollars}`
-  } catch (err) {
-    // Backend not connected yet — show placeholder data
-    document.getElementById('student-name').textContent = 'Hansika'
-    document.getElementById('swipe-count').textContent = '14'
-    document.getElementById('dining-dollars').textContent = '$48.50'
-  }
-}
+const BACKEND = 'https://campustap-production.up.railway.app';
 
-// Called when the NFC tap button is clicked
-async function simulateTap() {
-  const btn = document.getElementById('tap-btn')
-  const msg = document.getElementById('tap-message')
-
-  btn.disabled = true
-  msg.textContent = 'Processing tap...'
-
-  try {
-    const res = await fetch(`${BACKEND}/swipe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ student_id: 1 })
-    })
-    const data = await res.json()
-
-    document.getElementById('swipe-count').textContent = data.swipes_remaining
-    msg.textContent = `Swipe recorded! ${data.swipes_remaining} swipes remaining.`
-  } catch (err) {
-    const current = parseInt(document.getElementById('swipe-count').textContent)
-    if (current > 0) {
-      document.getElementById('swipe-count').textContent = current - 1
-      msg.textContent = `Swipe recorded! ${current - 1} swipes remaining.`
+// This is the core logic that links Firebase to your Backend
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        console.log("Authenticated email:", user.email);
+        loadStudentData(user.email);
     } else {
-      msg.textContent = 'No swipes remaining!'
-      msg.style.color = '#dc2626'
+        // If someone bypasses the redirect and hits index.html, kick them back
+        window.location.href = 'login.html';
     }
-  }
+});
 
-  btn.disabled = false
+async function loadStudentData(email) {
+    try {
+        console.log("Fetching data for email:", email); // Diagnostic 1
+        console.log("Target URL:", `${BACKEND}/student-data?email=${email}`); // Diagnostic 2
+
+        const res = await fetch(`${BACKEND}/student-data?email=${email}`);
+        
+        if (!res.ok) {
+            // Read the actual error message sent by your server.js
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(`Server responded with status ${res.status}: ${errorData.error || 'Unknown error'}`);
+        }
+        
+        const student = await res.json();
+        console.log("Successfully loaded student:", student);
+
+        document.getElementById('student-name').textContent = student.name;
+        document.getElementById('swipe-count').textContent = student.swipes;
+        document.getElementById('dining-dollars').textContent = `$${student.dining_dollars}`;
+        
+    } catch (err) {
+        console.error("Backend link failed details:", err.message); // Look at this in your browser console!
+        
+        document.getElementById('student-name').textContent = 'User Not Found';
+        document.getElementById('swipe-count').textContent = '0';
+        document.getElementById('dining-dollars').textContent = '$0.00';
+    }
 }
-
-loadStudent()
