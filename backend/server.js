@@ -8,19 +8,13 @@ const { GoogleGenAI } = require('@google/genai')
 
 const app = express()
 
-// FORCE NATIVE CORS HEADERS (Place this before ANY other middleware or routes)
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://campus-tap.vercel.app");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
-  
-  // Instantly intercept preflight OPTIONS method requests before they hit routes
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+// 2. Battle-tested CORS middleware configuration
+app.use(cors({
+  origin: 'https://campus-tap.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  credentials: true
+}));
 
 app.use(express.json())
 
@@ -90,7 +84,7 @@ setupDatabase()
 // --- ROUTES ---
 
 // GET /student-data?email=...
-app.get('/student-data', async (req, res) => {
+app.get('/student-data', async (req, res, next) => {
   const { email } = req.query
   
   if (!email) {
@@ -118,17 +112,12 @@ app.get('/student-data', async (req, res) => {
     })
     
   } catch (err) {
-    console.error("Route error:", err.message);
-    res.status(500).json({ error: err.message })
+    next(err); // Pass off to global handler
   }
 })
 
-// NEW AI CHATBOT ROUTE: POST /chat
-// UPDATED & PROTECTED CHAT ROUTE
-app.post('/chat', async (req, res) => {
-  // Always guarantee headers go out even if a crash happens deeper down
-  res.header("Access-Control-Allow-Origin", "https://campus-tap.vercel.app");
-  
+// AI CHATBOT ROUTE: POST /chat
+app.post('/chat', async (req, res, next) => {
   const { message } = req.body;
 
   if (!message) {
@@ -175,36 +164,36 @@ app.post('/chat', async (req, res) => {
     return res.json({ reply: response.text });
 
   } catch (err) {
-    // Catch-all prevents server drops and prints the real diagnostic issue to console logs
+    // If it's a routine SDK failure, return a safe message. Otherwise, hand over to global error catcher
     console.error("PROCESSED GEMINI FAULT:", err);
-    return res.status(200).json({ reply: `⚠️ AI Processing Error: ${err.message}. Check your server logs.` });
+    next(err);
   }
 });
 
 // GET /student/:id
-app.get('/student/:id', async (req, res) => {
+app.get('/student/:id', async (req, res, next) => {
   try {
     const result = await pool.query('SELECT * FROM students WHERE id = $1', [req.params.id])
     if (result.rows.length === 0) return res.status(404).json({ error: 'Student not found' })
     res.json(result.rows[0])
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    next(err);
   }
 })
 
 // GET /student/nfc/:nfc_id
-app.get('/student/nfc/:nfc_id', async (req, res) => {
+app.get('/student/nfc/:nfc_id', async (req, res, next) => {
   try {
     const result = await pool.query('SELECT * FROM students WHERE student_nfc_id = $1', [req.params.nfc_id])
     if (result.rows.length === 0) return res.status(404).json({ error: 'Student not found' })
     res.json(result.rows[0])
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    next(err);
   }
 })
 
 // POST /swipe
-app.post('/swipe', async (req, res) => {
+app.post('/swipe', async (req, res, next) => {
   const { student_id, hall_id } = req.body
   if (!student_id || !hall_id) {
     return res.status(400).json({ error: 'student_id and hall_id are required' })
@@ -222,12 +211,12 @@ app.post('/swipe', async (req, res) => {
     )
     res.json({ swipes_remaining: result.rows[0].swipes })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    next(err);
   }
 })
 
 // GET /dining-halls
-app.get('/dining-halls', async (req, res) => {
+app.get('/dining-halls', async (req, res, next) => {
   try {
     const result = await pool.query(`
       SELECT d.*, COUNT(s.id) AS recent_swipes
@@ -242,10 +231,20 @@ app.get('/dining-halls', async (req, res) => {
     }))
     res.json(halls)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    next(err);
   }
 })
 
-// 2. UPDATED: Standardized fallback port to 5000 to match setup expectations
+// 3. GLOBAL ERROR HANDLER (Forces CORS allowance on server error pages)
+app.use((err, req, res, next) => {
+  console.error("GLOBAL SERVER ERROR CAUGHT:", err.stack);
+  
+  res.header("Access-Control-Allow-Origin", "https://campus-tap.vercel.app");
+  res.status(500).json({ 
+    error: "Internal Server Error", 
+    message: err.message 
+  });
+});
+
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`CampusTap backend running on port ${PORT}`))
