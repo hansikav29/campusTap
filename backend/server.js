@@ -60,7 +60,7 @@ async function setupDatabase() {
     if (check.rows[0].count === '0') {
       console.log('Seeding database with demo data...')
       
-      await pool.query suicide(`
+      await pool.query(`
         INSERT INTO students (name, email, swipes, dining_dollars, student_nfc_id)
         VALUES ('Hansika', 'test@uni.com', 14, 48.50, 'DEMO-001');
       `)
