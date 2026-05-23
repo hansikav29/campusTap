@@ -24,8 +24,8 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false } // Required for some hosted Postgres instances
 })
 
-// Initialize Gemini SDK (Reads process.env.GEMINI_API_KEY automatically)
-const ai = new GoogleGenAI({});
+// Initialize Gemini SDK explicitly with your Railway environment key
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 async function setupDatabase() {
   try {
@@ -60,8 +60,7 @@ async function setupDatabase() {
     if (check.rows[0].count === '0') {
       console.log('Seeding database with demo data...')
       
-      // IMPORTANT: Replace the email below with your Firebase tester email
-      await pool.query(`
+      await pool.query suicide(`
         INSERT INTO students (name, email, swipes, dining_dollars, student_nfc_id)
         VALUES ('Hansika', 'test@uni.com', 14, 48.50, 'DEMO-001');
       `)
@@ -112,7 +111,7 @@ app.get('/student-data', async (req, res, next) => {
     })
     
   } catch (err) {
-    next(err); // Pass off to global handler
+    next(err); 
   }
 })
 
@@ -124,14 +123,12 @@ app.post('/chat', async (req, res, next) => {
     return res.status(400).json({ error: "Message content is required" });
   }
 
-  // Safety Check: Verify your environment variable key is present
   if (!process.env.GEMINI_API_KEY) {
     console.error("CRITICAL CONFIG ERROR: GEMINI_API_KEY environment variable is missing!");
-    return res.status(200).json({ reply: "⚠️ Chatbot Error: My AI API key configuration is missing on the server backend. Please check your environment configurations." });
+    return res.status(200).json({ reply: "⚠️ Chatbot Error: My AI API key configuration is missing on the server backend." });
   }
 
   try {
-    // 1. Gather database metrics safely
     let contextMap = [];
     try {
       const hallsQuery = await pool.query(`
@@ -150,7 +147,6 @@ app.post('/chat', async (req, res, next) => {
       console.error("Database context query failed, proceeding without it:", dbErr.message);
     }
 
-    // 2. Run Gemini Content Generation
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: message,
@@ -164,7 +160,6 @@ app.post('/chat', async (req, res, next) => {
     return res.json({ reply: response.text });
 
   } catch (err) {
-    // If it's a routine SDK failure, return a safe message. Otherwise, hand over to global error catcher
     console.error("PROCESSED GEMINI FAULT:", err);
     next(err);
   }
@@ -235,10 +230,9 @@ app.get('/dining-halls', async (req, res, next) => {
   }
 })
 
-// 3. GLOBAL ERROR HANDLER (Forces CORS allowance on server error pages)
+// 3. GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
   console.error("GLOBAL SERVER ERROR CAUGHT:", err.stack);
-  
   res.header("Access-Control-Allow-Origin", "https://campus-tap.vercel.app");
   res.status(500).json({ 
     error: "Internal Server Error", 
@@ -246,5 +240,6 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Bind to PORT and 0.0.0.0 for Railway proxy alignment
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => console.log(`CampusTap backend running on port ${PORT}`))
+app.listen(PORT, '0.0.0.0', () => console.log(`CampusTap backend running on port ${PORT}`))
