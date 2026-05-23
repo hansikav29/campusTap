@@ -22,7 +22,7 @@ const pool = new Pool({
 })
 
 // Initialize Gemini SDK explicitly with your Railway environment key
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = GoogleGenAI.fromEnv();
 
 async function setupDatabase() {
   try {
