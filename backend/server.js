@@ -1,6 +1,3 @@
-// 1. CRITICAL: Initialize dotenv at the absolute top of the file for local environments
-require('dotenv').config();
-
 const express = require('express')
 const cors = require('cors') 
 const { Pool } = require('pg')
