@@ -16,26 +16,30 @@ const auth = getAuth(app);
 
 const BACKEND = 'https://campustap-production.up.railway.app';
 
-// This is the core logic that links Firebase to your Backend
+// Link Firebase Auth to the Railway Database Context
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         console.log("Authenticated email:", user.email);
         loadStudentData(user.email);
     } else {
-        // If someone bypasses the redirect and hits index.html, kick them back
         window.location.href = 'login.html';
     }
 });
 
 async function loadStudentData(email) {
     try {
-        console.log("Fetching data for email:", email); // Diagnostic 1
-        console.log("Target URL:", `${BACKEND}/student-data?email=${email}`); // Diagnostic 2
+        console.log("Fetching data for email:", email);
+        console.log("Target URL:", `${BACKEND}/student-data?email=${email}`);
 
-        const res = await fetch(`${BACKEND}/student-data?email=${email}`);
+        const res = await fetch(`${BACKEND}/student-data?email=${email}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
         
         if (!res.ok) {
-            // Read the actual error message sent by your server.js
             const errorData = await res.json().catch(() => ({}));
             throw new Error(`Server responded with status ${res.status}: ${errorData.error || 'Unknown error'}`);
         }
@@ -43,15 +47,24 @@ async function loadStudentData(email) {
         const student = await res.json();
         console.log("Successfully loaded student:", student);
 
-        document.getElementById('student-name').textContent = student.name;
-        document.getElementById('swipe-count').textContent = student.swipes;
-        document.getElementById('dining-dollars').textContent = `$${student.dining_dollars}`;
+        // Update DOM elements safely
+        const nameEl = document.getElementById('student-name');
+        const swipeEl = document.getElementById('swipe-count');
+        const dollarsEl = document.getElementById('dining-dollars');
+
+        if (nameEl) nameEl.textContent = student.name;
+        if (swipeEl) swipeEl.textContent = student.swipes;
+        if (dollarsEl) dollarsEl.textContent = `$${student.dining_dollars}`;
         
     } catch (err) {
-        console.error("Backend link failed details:", err.message); // Look at this in your browser console!
+        console.error("Backend link failed details:", err.message);
         
-        document.getElementById('student-name').textContent = 'User Not Found';
-        document.getElementById('swipe-count').textContent = '0';
-        document.getElementById('dining-dollars').textContent = '$0.00';
+        const nameEl = document.getElementById('student-name');
+        const swipeEl = document.getElementById('swipe-count');
+        const dollarsEl = document.getElementById('dining-dollars');
+
+        if (nameEl) nameEl.textContent = 'User Not Found';
+        if (swipeEl) swipeEl.textContent = '0';
+        if (dollarsEl) dollarsEl.textContent = '$0.00';
     }
 }
