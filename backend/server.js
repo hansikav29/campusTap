@@ -13,6 +13,8 @@ app.use(cors({
   credentials: true
 }));
 
+app.options('*', cors())
+
 app.use(express.json())
 
 // Ensure DATABASE_URL is set in Railway environment variables
