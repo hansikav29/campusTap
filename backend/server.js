@@ -16,7 +16,10 @@ app.use(cors({
 app.options('*', cors())
 
 app.use(express.json())
-
+// Health check
+app.get('/', (req, res) => {
+  res.json({ status: 'CampusTap backend is running' })
+})
 // Ensure DATABASE_URL is set in Railway environment variables
 const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
