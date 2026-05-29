@@ -241,7 +241,9 @@ app.use((err, req, res, next) => {
     message: err.message 
   });
 });
-
-// Bind to PORT and 0.0.0.0 for Railway proxy alignment
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT
+if (!PORT) {
+  console.error('ERROR: PORT environment variable not set!')
+  process.exit(1)
+}
 app.listen(PORT, '0.0.0.0', () => console.log(`CampusTap backend running on port ${PORT}`))
