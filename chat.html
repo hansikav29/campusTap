@@ -63,41 +63,89 @@
 
   <script>
     const BACKEND = 'https://campustap-production.up.railway.app';
-
+    const menuData = {
+      'North Dining Hall': [
+        { name: 'Grilled Salmon', cal: 350, protein: '34g', carbs: '0g', fat: '22g' },
+        { name: 'Quinoa Bowl', cal: 420, protein: '12g', carbs: '65g', fat: '8g' }
+      ],
+      'South Dining Hall': [
+        { name: 'Beef Tacos', cal: 510, protein: '28g', carbs: '40g', fat: '25g' },
+        { name: 'Garden Salad', cal: 150, protein: '3g', carbs: '12g', fat: '10g' }
+      ],
+      'The Commons': [
+        { name: 'Margherita Pizza', cal: 280, protein: '12g', carbs: '35g', fat: '10g' },
+        { name: 'Classic Burger', cal: 650, protein: '30g', carbs: '45g', fat: '38g' }
+      ]
+    };
+    
+    let studentData = null;
+    let diningHalls = [];
+    
+    async function loadContext() {
+      try {
+        const { getAuth } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
+        const auth = getAuth();
+        const user = auth.currentUser;
+    
+        if (user) {
+          const res = await fetch(`${BACKEND}/student-data?email=${encodeURIComponent(user.email)}`);
+          if (res.ok) studentData = await res.json();
+        }
+      } catch (e) {
+        console.warn('Could not load student data for chat context:', e);
+      }
+    
+      try {
+        const res = await fetch(`${BACKEND}/dining-halls`);
+        if (res.ok) diningHalls = await res.json();
+      } catch (e) {
+        console.warn('Could not load dining halls for chat context:', e);
+      }
+    }
+    
+    loadContext();
+    
     async function sendMessage() {
       const inputEl = document.getElementById('user-input');
       const chatBox = document.getElementById('chat-box');
       const messageText = inputEl.value.trim();
-
       if (!messageText) return;
-
-      // Render user message text bubble locally instantly
+    
       chatBox.innerHTML += `<div class="message user">${messageText}</div>`;
       inputEl.value = '';
       chatBox.scrollTop = chatBox.scrollHeight;
-
+      const context = {
+        student: studentData ? {
+          name: studentData.name,
+          swipes: studentData.swipes,
+          dining_dollars: studentData.dining_dollars
+        } : null,
+        dining_halls: diningHalls.map(h => ({
+          name: h.name,
+          location: h.location,
+          is_open: h.is_open,
+          crowdedness: h.crowdedness
+        })),
+        menus: menuData
+      };
+    
       try {
         const res = await fetch(`${BACKEND}/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: messageText })
+          body: JSON.stringify({ message: messageText, context })
         });
-
         const data = await res.json();
-
-        // Render AI bubble block response 
         chatBox.innerHTML += `<div class="message bot">${data.reply || data.error}</div>`;
       } catch (err) {
-        chatBox.innerHTML += `<div class="message bot">Error: Unable to connect to backend server instances.</div>`;
+        chatBox.innerHTML += `<div class="message bot">Error: Unable to connect to backend.</div>`;
       }
-
+    
       chatBox.scrollTop = chatBox.scrollHeight;
     }
-
+    
     function handleKeyPress(event) {
-      if (event.key === 'Enter') {
-        sendMessage();
-      }
+      if (event.key === 'Enter') sendMessage();
     }
   </script>
 </body>
