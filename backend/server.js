@@ -214,16 +214,18 @@ app.post('/swipe', async (req, res, next) => {
   }
   try {
     const result = await pool.query(
-      'UPDATE students SET swipes = GREATEST(swipes - 1, 0) WHERE id = $1 RETURNING swipes',
+      'UPDATE students SET swipes = GREATEST(swipes - 1, 0) WHERE id = $1 RETURNING swipes, name',
       [student_id]
     )
     if (result.rows.length === 0) return res.status(404).json({ error: 'Student not found' })
-
     await pool.query(
       'INSERT INTO swipe_history (student_id, hall_id, swiped_at) VALUES ($1, $2, NOW())',
       [student_id, hall_id]
     )
-    res.json({ swipes_remaining: result.rows[0].swipes })
+    res.json({ 
+      swipes_remaining: result.rows[0].swipes,
+      student_name: result.rows[0].name
+    })
   } catch (err) {
     next(err);
   }
