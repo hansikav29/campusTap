@@ -119,19 +119,19 @@ app.get('/student-data', async (req, res, next) => {
 
 // AI CHATBOT ROUTE: POST /chat
 app.post('/chat', async (req, res, next) => {
-  const { message } = req.body;
+  const { message, context } = req.body;
 
   if (!message) {
     return res.status(400).json({ error: "Message content is required" });
   }
-
   if (!process.env.GEMINI_API_KEY) {
     console.error("CRITICAL CONFIG ERROR: GEMINI_API_KEY environment variable is missing!");
     return res.status(200).json({ reply: "⚠️ Chatbot Error: My AI API key configuration is missing on the server backend." });
   }
 
   try {
-    let contextMap = [];
+    // Always fetch live dining hall data from DB
+    let diningHalls = [];
     try {
       const hallsQuery = await pool.query(`
         SELECT d.*, COUNT(s.id) AS recent_swipes
@@ -139,7 +139,7 @@ app.post('/chat', async (req, res, next) => {
         LEFT JOIN swipe_history s ON s.hall_id = d.id AND s.swiped_at > NOW() - INTERVAL '1 hour'
         GROUP BY d.id ORDER BY d.id
       `);
-      contextMap = hallsQuery.rows.map(h => ({
+      diningHalls = hallsQuery.rows.map(h => ({
         name: h.name,
         location: h.location,
         is_open: h.is_open,
@@ -149,23 +149,40 @@ app.post('/chat', async (req, res, next) => {
       console.error("Database context query failed, proceeding without it:", dbErr.message);
     }
 
+    const studentInfo = context?.student
+      ? `Student name: ${context.student.name}, Swipes remaining: ${context.student.swipes}, Dining dollars: $${context.student.dining_dollars}`
+      : 'No student info available.';
+
+    const menuInfo = context?.menus
+      ? JSON.stringify(context.menus)
+      : 'No menu data provided.';
+
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: message,
       config: {
-        systemInstruction: `You are CampusTap AI, an assistant for university students. 
-        Use this live campus database snapshot to accurately answer crowding or availability questions: 
-        ${JSON.stringify(contextMap)}. Keep answers helpful, brief, and highly conversational.`
+        systemInstruction: `You are CampusTap AI, a helpful assistant for university students.
+
+    STUDENT INFO:
+    ${studentInfo}
+    
+    LIVE DINING HALL STATUS:
+    ${JSON.stringify(diningHalls)}
+    
+    TODAY'S MENUS (including nutrition):
+    ${menuInfo}
+    
+    Use all of the above to answer questions about the student's swipe balance, dining dollars, menu items, nutrition facts, hall crowding, and open hours. Be helpful, brief, and conversational.`
+          }
+        });
+    
+        return res.json({ reply: response.text });
+    
+      } catch (err) {
+        console.error("PROCESSED GEMINI FAULT:", err);
+        next(err);
       }
     });
-
-    return res.json({ reply: response.text });
-
-  } catch (err) {
-    console.error("PROCESSED GEMINI FAULT:", err);
-    next(err);
-  }
-});
 
 // GET /student/:id
 app.get('/student/:id', async (req, res, next) => {
