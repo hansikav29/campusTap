@@ -1,5 +1,5 @@
-<script type="module" src="app.js"></script>
 <!DOCTYPE html>
+<script type="module" src="app.js"></script>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -300,12 +300,12 @@
           subText.innerHTML = "<span style='color:var(--accent); font-weight:700;'>⚡ Tap Registered! Reading data...</span>";
           if (navigator.vibrate) navigator.vibrate(100);
 
-          const decoder = new TextDecoder();
           let scannedStudentId = null;
 
           for (const record of event.message.records) {
             if (record.recordType === "text") {
-              scannedStudentId = decoder.decode(record.data);
+              const decoder = new TextDecoder(record.encoding ?? 'utf-8');
+              scannedStudentId = decoder.decode(record.data).trim();
             }
           }
 
